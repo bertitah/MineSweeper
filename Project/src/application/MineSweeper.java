@@ -1,6 +1,7 @@
 package application;
 
 import javafx.application.Application;
+
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
@@ -19,10 +20,12 @@ import javafx.scene.text.Font;
 import javafx.scene.input.MouseButton;
 import javafx.stage.Stage;
 
+
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javafx.scene.control.Alert;
 
 public class MineSweeper extends Application {
     private static final int TILE_SIZE = 30;
@@ -59,11 +62,11 @@ public class MineSweeper extends Application {
         HBox topBar = createTopBar(primaryStage, root);
         root.setTop(topBar);
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("styles.css").toExternalForm()); // Agregar esta línea
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
+ 
 
     private void createStartScreen(Stage primaryStage, BorderPane root) {
         VBox vbox = new VBox();
@@ -114,19 +117,27 @@ public class MineSweeper extends Application {
         this.random = new Random();
 
         generateBoard();
+        
     }
-
+   
     private void generateBoard() {
         int count = 0;
+        int initialRow = random.nextInt(numRows);
+        int initialCol = random.nextInt(numCols);
+
+        // Generar el resto de las minas
         while (count < numMines) {
             int row = random.nextInt(numRows);
             int col = random.nextInt(numCols);
-            if (board[row][col] != -1) {
+
+            // Verificar que la posición no sea la inicial, no sea una mina y no esté cerca de la posición inicial
+            if ((row != initialRow || col != initialCol) && board[row][col] != -1 && !isAdjacentToInitialPosition(row, col, initialRow, initialCol)) {
                 board[row][col] = -1;
                 count++;
             }
         }
 
+        // Calcular el número de minas adyacentes para las casillas sin minas
         for (int row = 0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
                 if (board[row][col] != -1) {
@@ -136,6 +147,45 @@ public class MineSweeper extends Application {
             }
         }
     }
+
+    private boolean isAdjacentToInitialPosition(int row, int col, int initialRow, int initialCol) {
+        int rowDiff = Math.abs(row - initialRow);
+        int colDiff = Math.abs(col - initialCol);
+        return (rowDiff == 1 && colDiff <= 1) || (rowDiff <= 1 && colDiff == 1);
+    }
+
+
+
+    private void generateEmptyPosition(int row, int col) {
+        int[] directions = {-1, 0, 1};
+        int[] permutation = generateRandomPermutation(directions);
+
+        for (int i = 0; i < permutation.length; i++) {
+            int dr = permutation[i];
+            for (int j = 0; j < permutation.length; j++) {
+                int dc = permutation[j];
+                int newRow = row + dr;
+                int newCol = col + dc;
+                if (newRow >= 0 && newRow < numRows && newCol >= 0 && newCol < numCols && board[newRow][newCol] != -1) {
+                    board[newRow][newCol] = 0;
+                    return;
+                }
+            }
+        }
+    }
+
+    private int[] generateRandomPermutation(int[] array) {
+        Random random = new Random();
+        for (int i = array.length - 1; i > 0; i--) {
+            int index = random.nextInt(i + 1);
+            int temp = array[index];
+            array[index] = array[i];
+            array[i] = temp;
+        }
+        return array;
+    }
+
+
 
     private int countAdjacentMines(int row, int col) {
         int count = 0;
@@ -229,28 +279,61 @@ public class MineSweeper extends Application {
     }
 
     private void handleLeftClick(int row, int col) {
-        if (!revealed[row][col]) {
-            revealTile(row, col);
-            if (board[row][col] == -1) {
-                gameOver();
-            } else if (numUncoveredTiles == (numRows * numCols - numMines)) {
-                gameWon();
+        if (revealed[row][col] || gameOver) {
+            return;
+        }
+
+        if (board[row][col] == -1) {
+            gameOver();
+            return;
+        }
+
+        revealTile1(row, col);
+
+        if (numUncoveredTiles == (numRows * numCols - numMines)) {
+            gameWon();
+        }
+    }
+
+    private void revealTile1(int row, int col) {
+        if (row < 0 || row >= numRows || col < 0 || col >= numCols || revealed[row][col]) {
+            return;
+        }
+
+        Button tile = tiles[row][col];
+        tile.setStyle("-fx-background-color: #A9A9A9;"); // Color para casillas sin bombas alrededor
+        revealed[row][col] = true;
+        numUncoveredTiles++;
+
+        int value = board[row][col];
+        if (value != 0) {
+            tile.setText(String.valueOf(value));
+        } else {
+            for (int dr = -1; dr <= 1; dr++) {
+                for (int dc = -1; dc <= 1; dc++) {
+                    revealTile1(row + dr, col + dc);
+                }
             }
         }
     }
 
-    private void handleRightClick(int row, int col) {
-        Button tile = tiles[row][col];
-        if (!revealed[row][col]) {
-            if (tile.getText().equals("F")) {
-                tile.setText("");
-                numFlags--;
-            } else if (numFlags < numMines) {
-                tile.setText("F");
-                numFlags++;
-            }
-        }
-    }
+
+    	private void handleRightClick(int row, int col) {
+    	    Button tile = tiles[row][col];
+    	    if (!revealed[row][col]) {
+    	        if (!tile.getStyleClass().contains("flagged") && numFlags < numMines) {
+    	            tile.getStyleClass().add("flagged");
+    	            tile.setText("\uD83D\uDEA9"); // Emote de bandera (Unicode)
+    	            numFlags++;
+    	        } else {
+    	            tile.getStyleClass().remove("flagged");
+    	            tile.setText("");
+    	            numFlags--;
+    	        }
+    	    }
+    	}
+
+
 
     private void revealTile(int row, int col) {
         if (row < 0 || row >= numRows || col < 0 || col >= numCols || revealed[row][col]) {
@@ -268,7 +351,7 @@ public class MineSweeper extends Application {
         } else {
             for (int dr = -1; dr <= 1; dr++) {
                 for (int dc = -1; dc <= 1; dc++) {
-                    revealTile(row + dr, col + dc);
+                    revealTile1(row + dr, col + dc);
                 }
             }
         }
@@ -286,6 +369,12 @@ public class MineSweeper extends Application {
             }
         }
         stopTimer();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Game Over");
+        alert.setHeaderText(null);
+        alert.setContentText("Has perdido la partida.");
+        alert.showAndWait();
+
     }
     
     private void gameWon() {
@@ -299,6 +388,12 @@ public class MineSweeper extends Application {
             }
         }
         stopTimer();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("¡Felicidades!");
+        alert.setHeaderText(null);
+        alert.setContentText("Has ganado la partida.");
+        alert.showAndWait();
+
     }
 
     private void startTimer() {

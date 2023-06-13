@@ -8,6 +8,10 @@
     -fx-text-fill: white;
 }
 
+.tile.flagged {
+    -fx-background-color: yellow;
+}
+
 .button.tile {
     -fx-background-color: #6a737d;
     -fx-background-radius: 0;
@@ -71,4 +75,9 @@
 
 .button.revealed-8 {
     -fx-text-fill: gray;
+}
+
+.button.flag .text {
+    -fx-font-size: 18;
+    -fx-text-fill: white;
 }
