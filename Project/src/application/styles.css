@@ -1,0 +1,74 @@
+/* styles.css */
+
+.root {
+    -fx-background-color: #282c34;
+}
+
+.label {
+    -fx-text-fill: white;
+}
+
+.button.tile {
+    -fx-background-color: #6a737d;
+    -fx-background-radius: 0;
+    -fx-border-color: #282c34;
+    -fx-border-radius: 0;
+    -fx-border-width: 1;
+    -fx-text-fill: white;
+}
+
+.button.tile:pressed {
+    -fx-background-color: #6a737d;
+    -fx-text-fill: white;
+}
+
+.button.flag {
+    -fx-background-color: #d62828;
+    -fx-text-fill: white;
+}
+
+.button.mine {
+    -fx-background-color: #d62828;
+    -fx-text-fill: white;
+}
+
+.button.revealed {
+    -fx-background-color: #6a737d;
+    -fx-text-fill: white;
+}
+
+.button.revealed-0 {
+    -fx-text-fill: transparent;
+}
+
+.button.revealed-1 {
+    -fx-text-fill: blue;
+}
+
+.button.revealed-2 {
+    -fx-text-fill: green;
+}
+
+.button.revealed-3 {
+    -fx-text-fill: red;
+}
+
+.button.revealed-4 {
+    -fx-text-fill: darkblue;
+}
+
+.button.revealed-5 {
+    -fx-text-fill: darkred;
+}
+
+.button.revealed-6 {
+    -fx-text-fill: cyan;
+}
+
+.button.revealed-7 {
+    -fx-text-fill: black;
+}
+
+.button.revealed-8 {
+    -fx-text-fill: gray;
+}
