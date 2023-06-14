@@ -53,7 +53,7 @@ public class MineSweeper extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Minesweeper");
+        primaryStage.setTitle("BuscaMinas");
         BorderPane root = new BorderPane();
         createStartScreen(primaryStage, root);
         HBox topBar = createTopBar(primaryStage, root);
@@ -70,31 +70,35 @@ public class MineSweeper extends Application {
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(10);
 
-        Label titleLabel = new Label("Minesweeper");
-        titleLabel.setFont(Font.font("Arial", 24));
+        Label titleLabel = new Label("BuscaMinas");
+        titleLabel.setFont(Font.font("JetBrainsMono", 24));
+        titleLabel.setStyle("-fx-text-fill: #ff9900;"); 
 
-        Button beginnerButton = createDifficultyButton("Beginner (8x8, 10 mines)");
+        Button beginnerButton = createDifficultyButton("Principiante (8x8, 10 minas)");
         beginnerButton.setOnAction(event -> {
             startGame(8, 8, NUM_MINES_BEGINNER);
             showGameScreen(primaryStage, root);
         });
 
-        Button intermediateButton = createDifficultyButton("Intermediate (16x16, 40 mines)");
+        Button intermediateButton = createDifficultyButton("Intermedio (16x16, 40 minas)");
         intermediateButton.setOnAction(event -> {
             startGame(16, 16, NUM_MINES_INTERMEDIATE);
             showGameScreen(primaryStage, root);
         });
 
-        Button expertButton = createDifficultyButton("Expert (16x30, 99 mines)");
+        Button expertButton = createDifficultyButton("Experto (16x30, 99 minas)");
         expertButton.setOnAction(event -> {
             startGame(16, 30, NUM_MINES_EXPERT);
             showGameScreen(primaryStage, root);
         });
+        
+        beginnerButton.setStyle("-fx-background-color: lightblue;"); 
+        intermediateButton.setStyle("-fx-background-color: lightgreen;"); 
+        expertButton.setStyle("-fx-background-color: lightcoral;"); 
 
         vbox.getChildren().addAll(titleLabel, beginnerButton, intermediateButton, expertButton);
         root.setCenter(vbox);
     }
-
 
     private Button createDifficultyButton(String text) {
         Button button = new Button(text);
@@ -149,37 +153,6 @@ public class MineSweeper extends Application {
         int rowDiff = Math.abs(row - initialRow);
         int colDiff = Math.abs(col - initialCol);
         return (rowDiff == 1 && colDiff <= 1) || (rowDiff <= 1 && colDiff == 1);
-    }
-
-
-
-    private void generateEmptyPosition(int row, int col) {
-        int[] directions = {-1, 0, 1};
-        int[] permutation = generateRandomPermutation(directions);
-
-        for (int i = 0; i < permutation.length; i++) {
-            int dr = permutation[i];
-            for (int j = 0; j < permutation.length; j++) {
-                int dc = permutation[j];
-                int newRow = row + dr;
-                int newCol = col + dc;
-                if (newRow >= 0 && newRow < numRows && newCol >= 0 && newCol < numCols && board[newRow][newCol] != -1) {
-                    board[newRow][newCol] = 0;
-                    return;
-                }
-            }
-        }
-    }
-
-    private int[] generateRandomPermutation(int[] array) {
-        Random random = new Random();
-        for (int i = array.length - 1; i > 0; i--) {
-            int index = random.nextInt(i + 1);
-            int temp = array[index];
-            array[index] = array[i];
-            array[i] = temp;
-        }
-        return array;
     }
 
 
@@ -276,26 +249,19 @@ public class MineSweeper extends Application {
     }
 
     private void handleLeftClick(int row, int col) {
-        if (!gameOver) {
-            if (numUncoveredTiles == 0) {
-                // Se ha hecho el primer clic, abrir el campo sin minas ni números en la posición (row, col)
-                openFieldWithoutMinesAndNumbers(row, col);
-            }
-            
-            if (revealed[row][col]) {
-                return;
-            }
+        if (revealed[row][col] || gameOver) {
+            return;
+        }
 
-            if (board[row][col] == -1) {
-                gameOver();
-                return;
-            }
+        if (board[row][col] == -1) {
+            gameOver();
+            return;
+        }
 
-            revealTile1(row, col);
+        revealTile1(row, col);
 
-            if (numUncoveredTiles == (numRows * numCols - numMines)) {
-                gameWon();
-            }
+        if (numUncoveredTiles == (numRows * numCols - numMines)) {
+            gameWon();
         }
     }
 
@@ -363,28 +329,6 @@ public class MineSweeper extends Application {
     	}
 
 
-
-    private void revealTile(int row, int col) {
-        if (row < 0 || row >= numRows || col < 0 || col >= numCols || revealed[row][col]) {
-            return;
-        }
-
-        Button tile = tiles[row][col];
-        tile.setStyle("-fx-base: white;");
-        revealed[row][col] = true;
-        numUncoveredTiles++;
-
-        int value = board[row][col];
-        if (value != 0) {
-            tile.setText(String.valueOf(value));
-        } else {
-            for (int dr = -1; dr <= 1; dr++) {
-                for (int dc = -1; dc <= 1; dc++) {
-                    revealTile1(row + dr, col + dc);
-                }
-            }
-        }
-    }
 
     private void gameOver() {
         gameOver = true;
